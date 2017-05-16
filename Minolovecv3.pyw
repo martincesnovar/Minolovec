@@ -23,12 +23,14 @@ class Gumb:
 
 class Minesweeper():
     def __init__(self, master, vrstice,stolpci,mine, vidne_st):
+        self.time = Label()
         self.POKAZI = POKAZI
         self.vidne_st = vidne_st
         self.master = master
         self.st_vrstic = vrstice
         self.st_stolpcev = stolpci
         self.mines = mine
+        self.sec = 0
         #Nastavi nove vrednosti -Podatke uporabi iz nastavitev
         self.st_vrstic1234 = vrstice
         self.st_stolpcev1234 = stolpci
@@ -110,6 +112,12 @@ class Minesweeper():
                 self.buttons[vrstica][stolpec].gumb.destroy()
         self.buttons=None
 
+    def tick(self):
+        self.sec += 1
+        self.time['text'] = self.sec
+        # Take advantage of the after method of the Label
+        self.time.after(1000, self.tick)
+
     def nova_igra(self):
         #Uporabi podatke iz okna nastavitve
         self.mines=self.mines1234
@@ -128,20 +136,19 @@ class Minesweeper():
         
         if self.POKAZI:
             var = StringVar()
-##            var.trace("w", callback)
             var.set('Število min: ' + str(self.mines))
-##            self.label2 = Label(frame, variable = var)
-            
-            l = Label(root, textvariable=var, anchor=NW, justify=LEFT, wraplength=398)
-            l.grid(row=0, column=0, columnspan=10, sticky = N + S + E +W)
-##            self.label2.pack()
-##            self.label2.grid(row=0, column=0, columnspan=10, sticky = N + S + E +W)
+            l1 = Label(self.master, textvariable=var, anchor=NW, justify=LEFT, wraplength=398)
+            l1.grid(row=0, column=0, columnspan=10, sticky = N + S + E +W)
 
+            var1 = StringVar()
+            var1.set('Čas: ' + str(self.sec))
+            time = Label(self.master, textvariable=var1, anchor=NE, justify=LEFT, wraplength=398)
+            time.grid(row=1, column=0, columnspan=10, sticky = N + S + E +W)
+            var1.trace('w',self.tick())
             
-##            self.label2.grid(row = 0, column = 0, columnspan = 10)
 
         
-        frame.grid(row=1, column=0, sticky = N + S + E + W) if self.POKAZI else frame.grid(row=0, column=0, sticky = N + S + E + W)
+        frame.grid(row=2, column=0, sticky = N + S + E + W) if self.POKAZI else frame.grid(row=0, column=0, sticky = N + S + E + W)
         self.label1 = Label(frame, text="Minesweeper")
         self.label1.grid(row=0, column=0, columnspan=10)
         st = 0
@@ -187,7 +194,10 @@ class Minesweeper():
 
     def lclick(self, vrstica, stolpec, preveri_konec=True):
         prva = self.st_poklikanih == self.st_vrstic*self.st_stolpcev
-        if prva: self.t1 = time.time()
+        if prva:
+            self.t1 = time.time()
+            self.sec = 0
+            self.tick()
 
         sez = self.buttons[vrstica][stolpec]
         # print(sez)
@@ -235,16 +245,10 @@ class Minesweeper():
             self.konec_igre(True)
 
     def sclick(self, vrstica, stolpec):
-        '''Odpira še sosednje mine Experimentalno'''
-        self.lclick(vrstica, stolpec,False)
-        self.lclick(vrstica-1, stolpec,False)
-        self.lclick(vrstica, stolpec-1,False)
-        self.lclick(vrstica-1, stolpec-1,False)
-        self.lclick(vrstica+1, stolpec,False)
-        self.lclick(vrstica, stolpec+1,False)
-        self.lclick(vrstica+1, stolpec+1,False)
-        self.lclick(vrstica+1, stolpec-1,False)
-        self.lclick(vrstica-1, stolpec+1,False)
+        '''Odpira še sosednje mine experimentalno
+            dodana funkcionalnost iz minolovca'''
+        for el in self.sosedi(vrstica, stolpec):
+            self.lclick(el[0],el[1],False)
 
     def rclick(self, vrstica, stolpec):
         sez = self.buttons[vrstica][stolpec]
