@@ -10,7 +10,7 @@ import random
 import time
 
 #Konstante
-POKAZI = 0 #0 Ne prikazuje števila min, uro v glavnem oknu, 1 prikazuje.
+POKAZI = 1 #0 Ne prikazuje števila min, uro v glavnem oknu, 1 prikazuje.
 
 class Gumb:
     def __init__(self, gumb, mina, sosedi):
@@ -127,8 +127,15 @@ class Minesweeper():
         #Dodamo polje za število min in čas
         
         if self.POKAZI:
-            self.label2 = Label(frame, text = "Mines: "+str(self.mines))
-            self.label2.grid(row=0, column=0, columnspan=10, sticky = N + S + E +W)
+            var = StringVar()
+##            var.trace("w", callback)
+            var.set('Število min: ' + str(self.mines))
+##            self.label2 = Label(frame, variable = var)
+            
+            l = Label(root, textvariable=var, anchor=NW, justify=LEFT, wraplength=398)
+            l.grid(row=0, column=0, columnspan=10, sticky = N + S + E +W)
+##            self.label2.pack()
+##            self.label2.grid(row=0, column=0, columnspan=10, sticky = N + S + E +W)
 
             
 ##            self.label2.grid(row = 0, column = 0, columnspan = 10)
@@ -152,6 +159,8 @@ class Minesweeper():
                 # GLUPI PYTHON NAROBE DELA SPREMENLJIVKE V LAMBDAH
                 self.buttons[vrstica][stolpec].gumb.bind('<Button-1>',
                                                          (lambda v, s: lambda e: self.lclick(v, s))(vrstica, stolpec))
+                self.buttons[vrstica][stolpec].gumb.bind('<Button-2>',
+                                                         (lambda v, s: lambda e: self.sclick(v, s))(vrstica, stolpec))
                 self.buttons[vrstica][stolpec].gumb.bind('<Button-3>',
                                                          (lambda v, s: lambda e: self.rclick(v, s))(vrstica, stolpec))
                 self.buttons[vrstica][stolpec].gumb.grid(row=vrstica, column=stolpec, sticky=N + S + E + W)
@@ -204,6 +213,7 @@ class Minesweeper():
                     for x in range(len(self.buttons[i])):
                         if self.buttons[i][x].mina == 1:
                             self.buttons[i][x].gumb.config(bg="red", text='*')
+                            preveri_konec = False
                 self.konec_igre(False)
             else:
                 # polje je bilo prazno
@@ -223,6 +233,18 @@ class Minesweeper():
         # ali je konec igre?
         if preveri_konec and self.st_poklikanih-self.mines == 0:
             self.konec_igre(True)
+
+    def sclick(self, vrstica, stolpec):
+        '''Odpira še sosednje mine Experimentalno'''
+        self.lclick(vrstica, stolpec,False)
+        self.lclick(vrstica-1, stolpec,False)
+        self.lclick(vrstica, stolpec-1,False)
+        self.lclick(vrstica-1, stolpec-1,False)
+        self.lclick(vrstica+1, stolpec,False)
+        self.lclick(vrstica, stolpec+1,False)
+        self.lclick(vrstica+1, stolpec+1,False)
+        self.lclick(vrstica+1, stolpec-1,False)
+        self.lclick(vrstica-1, stolpec+1,False)
 
     def rclick(self, vrstica, stolpec):
         sez = self.buttons[vrstica][stolpec]
