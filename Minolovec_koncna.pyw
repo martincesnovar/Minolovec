@@ -13,7 +13,7 @@ import time
 VRSTICE = 10
 STOLPCI = 10
 MINE = 10
-POKAZI = False #False Ne prikazuje števila min, uro v glavnem oknu, True prikazuje.
+POKAZI = True #False Ne prikazuje števila min, uro v glavnem oknu, True prikazuje.
 NEPOKAZI_ST = False
 
 class Gumb:
@@ -124,7 +124,6 @@ class Minesweeper():
         self.buttons = [[None for i in range(self.st_stolpcev)] for j in range(self.st_vrstic)]
         self.izbrane_mine = random.sample([i for i in range(self.st_vrstic * self.st_stolpcev)], self.mines1234)
         self.st_nepoklikanih = self.st_vrstic * self.st_stolpcev
-        # print("nova igra")
         num_proximity_mines = 0
         frame = Frame(self.master)
         Grid.rowconfigure(self.master, 0, weight=1)
@@ -152,7 +151,7 @@ class Minesweeper():
                 Grid.columnconfigure(frame, stolpec, weight=1)
                 mine = False
                 if st in self.izbrane_mine:
-                    mine = True
+                    mine = True                   
   
                 gumb = Gumb(Button(frame, bg="green", width=3), mine, num_proximity_mines)  # Objekt
 
@@ -171,7 +170,6 @@ class Minesweeper():
         for v in range(self.st_vrstic):
             for s in range(self.st_stolpcev):
                 self.buttons[v][s].sosedi = self.sosednje_mine(v, s)
-
 
         self.master.attributes("-topmost", True)
 
@@ -202,7 +200,6 @@ class Minesweeper():
         if prva: self.t1 = time.time()
 
         sez = self.buttons[vrstica][stolpec]
-        # print(sez)
         if sez.gumb["bg"] == "green":
             # polje se ni odkrito, ga odkrijemo
             self.st_nepoklikanih -= 1
@@ -216,6 +213,7 @@ class Minesweeper():
                 #Dodamo še 1 mino, ker smo jo kliknili v 1. potezi
                 izbrana = random.choice(self.sez_praznih)
                 izbrana.mina = True
+                sez.sosedi = self.sosednje_mine(vrstica, stolpec)
                 #self.mines += 1
                 
                 m = sez.sosedi  # stevilo sosednjih min
@@ -247,7 +245,6 @@ class Minesweeper():
                         
                 sez.gumb.config(bg="green yellow")
                 if m == 0:
-                    # print ("odpiramo sosede od {0}".format((vrstica,stolpec)))
                     for (v, s) in self.sosedi(vrstica, stolpec):
                         self.lclick(v, s, preveri_konec=False)
 
@@ -343,6 +340,7 @@ class Nastavitve():
         self.minesweeper.zbrisi_polje()
         self.minesweeper.nova_igra()
 
+#Glavni program
 root = Tk()
 root.title('Minolovec')
 minesweeper = Minesweeper(root,VRSTICE,STOLPCI,MINE, NEPOKAZI_ST, POKAZI)
