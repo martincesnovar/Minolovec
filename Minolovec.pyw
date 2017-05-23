@@ -18,6 +18,8 @@ MINE = 10
 POKAZI = True #False Ne prikazuje števila min, uro v glavnem oknu, True prikazuje.
 NEPOKAZI_ST = False
 
+#sys.platform = "darwin"
+
 class Gumb:
     def __init__(self, gumb, mina, sosedi):
         self.gumb = gumb
@@ -251,6 +253,8 @@ class Minesweeper():
                         sez.gumb.config(text=str(m))
                     else:
                         sez.gumb.config(text='')
+                        if m == 0 and sys.platform == "darwin": #Označi odprte
+                            sez.gumb.config(text=str(m))
                         
                 sez.gumb.config(bg="green yellow")
                 if m == 0:
