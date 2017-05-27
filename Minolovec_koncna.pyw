@@ -51,7 +51,7 @@ class Minesweeper():
 
         # game menu
         filemenu = Menu(self.menu, tearoff=0)
-        filemenu.add_command(label="Nova igra", command=self.nova_igra)
+        filemenu.add_command(label="Nova igra", command=self.nova)
         filemenu.add_command(label="Shrani", command=self.file_save)
         filemenu.add_separator()
         filemenu.add_command(label="Izhod", command=self.master.destroy)
@@ -83,13 +83,18 @@ class Minesweeper():
     def skrij_uro(self):
         self.pokazi = not self.pokazi
 
+    def nova(self):
+        self.t1=time.time()
+        self.konec_igre(False)
+
     def lahka(self):
         '''ustvari 10*10 veliko polje z 10 minami'''
         self.st_vrstic1234 = 10
         self.st_stolpcev1234 = 10
         self.mines1234=10
         self.nevidne_st = False
-        self.nova_igra()
+        self.t1=time.time()
+        self.konec_igre(False)
 
     def srednja(self):
         '''ustvari 15*15 veliko polje z 50 minami'''
@@ -97,7 +102,8 @@ class Minesweeper():
         self.st_stolpcev1234 = 15
         self.mines1234=50
         self.nevidne_st = False
-        self.nova_igra()
+        self.t1=time.time()
+        self.konec_igre(False)
         
     def tezka(self):
         '''ustvari 24*30 veliko polje z 688 minami'''
@@ -105,7 +111,8 @@ class Minesweeper():
         self.st_stolpcev1234 = 30
         self.mines1234=668
         self.nevidne_st = False
-        self.nova_igra()
+        self.t1=time.time()
+        self.konec_igre(False)
 
     def zelo_tezka(self):
         '''ustvari 24*30 veliko polje z 688 minami z izklopljenimi številkami'''
@@ -114,7 +121,8 @@ class Minesweeper():
         self.mines1234=668
         self.nevidne_st = True #Skrij številke
         self.prvic = False
-        self.nova_igra()
+        self.t1=time.time()
+        self.konec_igre(False)
 
     def nastavitve(self):
         okno = Nastavitve(self)
