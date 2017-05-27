@@ -352,7 +352,7 @@ class Nastavitve():
         
         self.minesweeper.st_vrstic1234 = max(int(self.e1.get1),1)
         self.minesweeper.st_stolpcev1234 = max(int(self.e2.get2),1)
-        self.minesweeper.mines1234 = max(min(int(self.e3.get3),self.minesweeper.st_stolpcev1234*self.minesweeper.st_vrstic1234),0) #Število min ne sme biti večje od velikosti igralnega polja
+        self.minesweeper.mines1234 = max(min(int(self.e3.get3),self.minesweeper.st_stolpcev1234*self.minesweeper.st_vrstic1234 - 1),0) #Število min ne sme biti večje od velikosti igralnega polja
         self.minesweeper.nevidne_st = self.var.get()
 
         self.top.destroy()
