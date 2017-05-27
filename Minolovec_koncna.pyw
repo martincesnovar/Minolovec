@@ -3,9 +3,11 @@ import sys
 if sys.version_info[0] == 2: #Python 2.7.x
     from Tkinter import *
     import tkMessageBox as messagebox
+    import tkFileDialog as filedialog
 else:
     from tkinter import *
     from tkinter import messagebox
+    from tkinter import filedialog
 import random
 import time
 
@@ -50,6 +52,7 @@ class Minesweeper():
         # game menu
         filemenu = Menu(self.menu, tearoff=0)
         filemenu.add_command(label="Nova igra", command=self.nova_igra)
+        filemenu.add_command(label="Shrani", command=self.file_save)
         filemenu.add_separator()
         filemenu.add_command(label="Izhod", command=self.master.destroy)
         self.menu.add_cascade(label="Igra", menu=filemenu)
@@ -68,6 +71,14 @@ class Minesweeper():
         self.master.config(menu=self.menu)
 
         self.nova_igra()
+
+    def file_save(self):
+        '''Shrani prazne gumbe'''
+        name=filedialog.asksaveasfile(mode='w',defaultextension=".txt")
+        for el in self.sez_praznih:
+            text2save=str(el)+'\n'
+            name.write(text2save)
+        name.close
 
     def skrij_uro(self):
         self.pokazi = not self.pokazi
@@ -116,6 +127,7 @@ class Minesweeper():
         self.buttons=None
 
     def nova_igra(self):
+        self.sez_praznih = []
         self.prvic = True
         #Uporabi podatke iz okna nastavitve
         self.mines=self.mines1234
