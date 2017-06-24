@@ -3,13 +3,13 @@ import sys
 if sys.version_info[0] == 2: #Python 2.7.x
     from Tkinter import *
     import tkMessageBox as messagebox
+    import tkFileDialog as filedialog
 else:
     from tkinter import *
     from tkinter import messagebox
+    from tkinter import filedialog
 import random
 import time
-
-#Zdaj iz msgbox-a in iz okna nastavitve čas teče pravilno, popraviti še iz težavnosti
 
 #Konstante
 VRSTICE = 10
@@ -17,8 +17,6 @@ STOLPCI = 10
 MINE = 10
 POKAZI = True #False Ne prikazuje števila min, uro v glavnem oknu, True prikazuje.
 NEPOKAZI_ST = False
-
-#sys.platform = "darwin"
 
 class Gumb:
     def __init__(self, gumb, mina, sosedi):
@@ -37,6 +35,7 @@ class Minesweeper():
         self.st_vrstic = vrstice
         self.st_stolpcev = stolpci
         self.mines = mine
+        self.sez_praznih = [] #tu notri pospravimo gumbe, ki nimajo min.
         #Nastavi nove vrednosti -Podatke uporabi iz nastavitev
         self.st_vrstic1234 = vrstice
         self.st_stolpcev1234 = stolpci
@@ -52,8 +51,8 @@ class Minesweeper():
 
         # game menu
         filemenu = Menu(self.menu, tearoff=0)
-        filemenu.add_command(label="Nova igra", command=self.nova_igra)
-        filemenu.add_command(label="Štoparica", command=self.stoparica)
+        filemenu.add_command(label="Nova igra", command=self.nova)
+        filemenu.add_command(label="Shrani", command=self.file_save)
         filemenu.add_separator()
         filemenu.add_command(label="Izhod", command=self.master.destroy)
         self.menu.add_cascade(label="Igra", menu=filemenu)
@@ -61,6 +60,7 @@ class Minesweeper():
         # create more pulldown menus
         levelmenu = Menu(self.menu, tearoff=1)
         levelmenu.add_command(label="Po meri", command=self.nastavitve)
+        levelmenu.add_command(label="Obrni", command=self.obrni)
         levelmenu.add_separator()
         levelmenu.add_command(label="Lahka", command=self.lahka)
         levelmenu.add_command(label="Srednje težka", command=self.srednja)
@@ -73,45 +73,59 @@ class Minesweeper():
 
         self.nova_igra()
 
+    def file_save(self):
+        '''Shrani prazne gumbe'''
+        name=filedialog.asksaveasfile(mode='w',defaultextension=".txt")
+        for el in self.sez_praznih:
+            text2save=str(el)+'\n'
+            name.write(text2save)
+        name.close
+
+    def skrij_uro(self):
+        self.pokazi = not self.pokazi
+
+    def nova(self):
+        self.t1=time.time()
+        self.konec_igre(False)
+
     def lahka(self):
         '''ustvari 10*10 veliko polje z 10 minami'''
-        self.prvic = False
         self.st_vrstic1234 = 10
         self.st_stolpcev1234 = 10
         self.mines1234=10
         self.nevidne_st = False
-        self.nova_igra()
+        self.t1=time.time()
+        self.konec_igre(False)
 
     def srednja(self):
         '''ustvari 15*15 veliko polje z 50 minami'''
-        self.prvic = False
         self.st_vrstic1234 = 15
         self.st_stolpcev1234 = 15
         self.mines1234=50
         self.nevidne_st = False
-        self.nova_igra()
+        self.t1=time.time()
+        self.konec_igre(False)
         
     def tezka(self):
         '''ustvari 24*30 veliko polje z 688 minami'''
-        self.prvic = False
         self.st_vrstic1234 = 24
         self.st_stolpcev1234 = 30
         self.mines1234=668
         self.nevidne_st = False
-        self.nova_igra()
+        self.t1=time.time()
+        self.konec_igre(False)
 
     def zelo_tezka(self):
         '''ustvari 24*30 veliko polje z 688 minami z izklopljenimi številkami'''
-        self.prvic = False
-        self.st_vrstic1234 = 24
-        self.st_stolpcev1234 = 30
-        self.mines1234=668
-        self.nevidne_st = True #Skrij številke
-        self.prvic = False
-        self.nova_igra()
+        self.tezka()
+        self.nevidne_st=True
 
-    def stoparica(self):
-        okno = Timer(self)
+    def obrni(self):
+        '''Obrne število min'''
+        polje = self.st_vrstic1234*self.st_stolpcev1234
+        self.mines1234 = polje - self.mines1234
+        self.t1=time.time()
+        self.konec_igre(False)
 
     def nastavitve(self):
         okno = Nastavitve(self)
@@ -124,6 +138,7 @@ class Minesweeper():
         self.buttons=None
 
     def nova_igra(self):
+        self.sez_praznih = []
         self.prvic = True
         #Uporabi podatke iz okna nastavitve
         self.mines=self.mines1234
@@ -131,8 +146,7 @@ class Minesweeper():
         self.st_stolpcev = self.st_stolpcev1234
         self.buttons = [[None for i in range(self.st_stolpcev)] for j in range(self.st_vrstic)]
         self.izbrane_mine = random.sample([i for i in range(self.st_vrstic * self.st_stolpcev)], self.mines1234)
-        self.st_poklikanih = self.st_vrstic * self.st_stolpcev
-        # print("nova igra")
+        self.st_nepoklikanih = self.st_vrstic * self.st_stolpcev
         num_proximity_mines = 0
         frame = Frame(self.master)
         Grid.rowconfigure(self.master, 0, weight=1)
@@ -140,30 +154,19 @@ class Minesweeper():
         
         #Dodamo polje za število min in čas
         
-        if self.pokazi:
+        if self.pokazi: #pokaže/skrije število min in uro.
             var = StringVar()
-##            var.trace("w", callback)
             var.set('Število min: ' + str(self.mines))
-##            self.label2 = Label(frame, variable = var)
-            
             l = Label(self.master, textvariable=var, anchor=NW, justify=LEFT, wraplength=398)
             l.grid(row=0, column=0, columnspan=10, sticky = N + S + E +W)
-##            self.label2.pack()
-##            self.label2.grid(row=0, column=0, columnspan=10, sticky = N + S + E +W)
-            self.now=0
+            self.now=-1
             self.label = Label(self.master,text=self.now,anchor=NW, justify=LEFT, wraplength=398)
             self.label.grid(row=0, column=2, columnspan=10, sticky = N + S + E +W)
             self.update_clock()
-
-    
-
             
-##            self.label2.grid(row = 0, column = 0, columnspan = 10)
-
-        
         frame.grid(row=1, column=0, sticky = N + S + E + W) if self.pokazi else frame.grid(row=0, column=0, sticky = N + S + E + W)
-        self.label1 = Label(frame, text="Minesweeper")
-        self.label1.grid(row=0, column=0, columnspan=10)
+##        self.label1 = Label(frame, text="Minesweeper")
+##        self.label1.grid(row=0, column=0, columnspan=10)
         st = 0
         for vrstica in range(self.st_vrstic):
             Grid.rowconfigure(frame, vrstica, weight=1)
@@ -171,16 +174,17 @@ class Minesweeper():
                 Grid.columnconfigure(frame, stolpec, weight=1)
                 mine = False
                 if st in self.izbrane_mine:
-                    mine = True
-
+                    mine = True                   
+  
                 gumb = Gumb(Button(frame, bg="green", width=3), mine, num_proximity_mines)  # Objekt
+
+                if mine == False: #Prazne mine doda v seznam - da "premaknem" mino.
+                    self.sez_praznih.append(gumb)               
 
                 self.buttons[vrstica][stolpec] = gumb
                 # GLUPI PYTHON NAROBE DELA SPREMENLJIVKE V LAMBDAH
                 self.buttons[vrstica][stolpec].gumb.bind('<Button-1>',
                                                          (lambda v, s: lambda e: self.lclick(v, s))(vrstica, stolpec))
-                self.buttons[vrstica][stolpec].gumb.bind('<Button-2>',
-                                                         (lambda v, s: lambda e: self.sclick(v, s))(vrstica, stolpec))
                 self.buttons[vrstica][stolpec].gumb.bind('<Button-3>',
                                                          (lambda v, s: lambda e: self.rclick(v, s))(vrstica, stolpec))
                 self.buttons[vrstica][stolpec].gumb.grid(row=vrstica, column=stolpec, sticky=N + S + E + W)
@@ -192,10 +196,9 @@ class Minesweeper():
 
         self.master.attributes("-topmost", True)
 
-        
     def update_clock(self):
         if not self.prvic:
-            self.now = 0
+            self.now = -1
         self.now += 1
         
         self.label.configure(text=self.now)
@@ -216,19 +219,26 @@ class Minesweeper():
         return m
 
     def lclick(self, vrstica, stolpec, preveri_konec=True):
-        prva = self.st_poklikanih == self.st_vrstic*self.st_stolpcev
+        prva = self.st_nepoklikanih == self.st_vrstic*self.st_stolpcev #ali je prva poteza?
         if prva: self.t1 = time.time()
 
         sez = self.buttons[vrstica][stolpec]
-        # print(sez)
         if sez.gumb["bg"] == "green":
             # polje se ni odkrito, ga odkrijemo
-            self.st_poklikanih -= 1
+            self.st_nepoklikanih -= 1
+            sez.sosedi = self.sosednje_mine(vrstica, stolpec)
             #Stopimo na mino v 1. koraku
-            #Na igralnem polju je 1 mina manj
-            if sez.mina == 1 and prva == True:
-                sez.mina=0
-                self.mines-=1
+            #Na igralnem polju je 1 mina manj.
+            if sez.mina == True and prva == True:
+                sez.mina= False
+                #self.mines-=1
+
+                #Dodamo še 1 mino, ker smo jo kliknili v 1. potezi
+                izbrana = random.choice(self.sez_praznih)
+                izbrana.mina = True
+                sez.sosedi = self.sosednje_mine(vrstica, stolpec)
+                #self.mines += 1
+                
                 m = sez.sosedi  # stevilo sosednjih min
                 if m != 0 or sys.platform =="darwin":
                     if self.nevidne_st == False:
@@ -258,35 +268,28 @@ class Minesweeper():
                         
                 sez.gumb.config(bg="green yellow")
                 if m == 0:
-                    # print ("odpiramo sosede od {0}".format((vrstica,stolpec)))
                     for (v, s) in self.sosedi(vrstica, stolpec):
                         self.lclick(v, s, preveri_konec=False)
 
         # ali je konec igre?
-        if preveri_konec and self.st_poklikanih-self.mines == 0:
+        if preveri_konec and self.st_nepoklikanih-self.mines == 0:
             self.konec_igre(True)
-        return True
-
-    def sclick(self, vrstica, stolpec):
-        '''Odpira še sosednje mine'''
-        for el in self.sosedi(vrstica, stolpec):
-            self.lclick(el[0],el[1],False)
-
+            
     def rclick(self, vrstica, stolpec):
         sez = self.buttons[vrstica][stolpec]
         if sez.gumb["bg"] == "green":
             sez.gumb.config(bg="blue", text=chr(9873) if sys.version_info[0] == 3 and TkVersion >= 8.6 else ':)')
-            self.st_poklikanih -= 1
+            self.st_nepoklikanih -= 1
             if sez.mina == 1:
                 self.mines -= 1
 
         elif sez.gumb["bg"] == "blue":
             if sez.gumb == 1:
                 self.mines += 1
-            self.st_poklikanih += 1
+            self.st_nepoklikanih += 1
             sez.gumb.config(bg="green", text="")
 
-        if self.st_poklikanih == 0 and self.mines == 0:
+        if self.st_nepoklikanih == 0 and self.mines == 0:
             self.konec_igre(True)
 
     def konec_igre(self, od_kje):
@@ -316,8 +319,6 @@ class Nastavitve():
     def __init__(self, minesweeper):
         self.minesweeper = minesweeper
         self.minesweeper.prvic = False #Štoparica
-        ## Če dam tole v callback, potem začne prehitevat ura
-        ## Če pustim tukaj in če zaprem "nastavitve" potem ura crkne
         self.top = Toplevel()
         self.top.title("Nastavi")
         self.top.attributes("-topmost", True)
@@ -329,8 +330,6 @@ class Nastavitve():
         Label(frame, text="Število vrstic").grid(row=0, column=0, sticky=W)
         Label(frame, text="Število stolpcev").grid(row=1, column=0, sticky=W)
         Label(frame, text="Število min").grid(row=2, column=0, sticky=W)
-##        Button(frame, text="+").grid(row=0, column=2)
-##        Button(frame, text="-").grid(row=1, column=2)
         self.e1 = Entry(frame)
         self.e2 = Entry(frame)
         self.e3 = Entry(frame)
@@ -342,7 +341,7 @@ class Nastavitve():
         self.var = IntVar()
         c = Checkbutton(self.top, text="Skrij številke", variable=self.var)
         c.pack()
-
+        
         b = Button(self.top, text="OK", command=self.callback)
         self.top.bind("<Return>", self.callback)
         b.pack()
@@ -356,7 +355,7 @@ class Nastavitve():
         
         self.minesweeper.st_vrstic1234 = max(int(self.e1.get1),1)
         self.minesweeper.st_stolpcev1234 = max(int(self.e2.get2),1)
-        self.minesweeper.mines1234 = max(min(int(self.e3.get3),self.minesweeper.st_stolpcev1234*self.minesweeper.st_vrstic1234),0) #Število min ne sme biti večje od velikosti igralnega polja
+        self.minesweeper.mines1234 = max(min(int(self.e3.get3),self.minesweeper.st_stolpcev1234*self.minesweeper.st_vrstic1234 - 1),0) #Število min ne sme biti večje od velikosti igralnega polja
         self.minesweeper.nevidne_st = self.var.get()
 
         self.top.destroy()
@@ -364,27 +363,7 @@ class Nastavitve():
         self.minesweeper.zbrisi_polje()
         self.minesweeper.nova_igra()
 
-##Timer
-
-class Timer:
-    def __init__(self,minesweeper):
-        self.sec = 0
-        self.minesweeper = minesweeper
-        self.timer = Toplevel()
-        self.timer.title("Čas")
-        self.timer.attributes("-topmost", True)
-        self.time = Label(self.timer, fg='green')
-        self.time.pack()
-        Button(self.timer, fg='blue', text='Start', command=self.tick).pack()
-
-
-
-    def tick(self):
-        self.sec += 1
-        self.time['text'] = self.sec
-        # Take advantage of the after method of the Label
-        self.time.after(1000, self.tick)
-
+#Glavni program
 root = Tk()
 root.title('Minolovec')
 minesweeper = Minesweeper(root,VRSTICE,STOLPCI,MINE, NEPOKAZI_ST, POKAZI)
