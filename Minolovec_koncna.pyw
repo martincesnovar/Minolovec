@@ -60,6 +60,7 @@ class Minesweeper():
         # create more pulldown menus
         levelmenu = Menu(self.menu, tearoff=1)
         levelmenu.add_command(label="Po meri", command=self.nastavitve)
+        levelmenu.add_command(label="Obrni", command=self.obrni)
         levelmenu.add_separator()
         levelmenu.add_command(label="Lahka", command=self.lahka)
         levelmenu.add_command(label="Srednje težka", command=self.srednja)
@@ -116,11 +117,13 @@ class Minesweeper():
 
     def zelo_tezka(self):
         '''ustvari 24*30 veliko polje z 688 minami z izklopljenimi številkami'''
-        self.st_vrstic1234 = 24
-        self.st_stolpcev1234 = 30
-        self.mines1234=668
-        self.nevidne_st = True #Skrij številke
-        self.prvic = False
+        self.tezka()
+        self.nevidne_st=True
+
+    def obrni(self):
+        '''Obrne število min'''
+        polje = self.st_vrstic1234*self.st_stolpcev1234
+        self.mines1234 = polje - self.mines1234
         self.t1=time.time()
         self.konec_igre(False)
 
