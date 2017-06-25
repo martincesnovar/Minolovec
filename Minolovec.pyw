@@ -4,12 +4,15 @@ if sys.version_info[0] == 2: #Python 2.7.x
     from Tkinter import *
     import tkMessageBox as messagebox
     import tkFileDialog as filedialog
+    import urllib2
 else:
     from tkinter import *
     from tkinter import messagebox
     from tkinter import filedialog
+    import urllib.request as urllib2
 import random
 import time
+import webbrowser
 
 #Konstante
 VRSTICE = 10
@@ -29,6 +32,7 @@ class Gumb:
 
 class Minesweeper():
     def __init__(self, master, vrstice,stolpci,mine, nevidne_st, pokazi):
+        self.datum = "2017-06-27T00:00:00" #Time stamp preverjanje posodobitev vedno posodobi.
         self.pokazi = pokazi
         self.nevidne_st = nevidne_st
         self.master = master
@@ -68,10 +72,33 @@ class Minesweeper():
         levelmenu.add_command(label="Zelo težka", command=self.zelo_tezka)
         self.menu.add_cascade(label="Težavnost", menu=levelmenu)
 
+        netmenu = Menu(self.menu, tearoff=0)
+        netmenu.add_command(label='Preveri posodobitve',command=self.preveri_posodobitve)
+        self.menu.add_cascade(label="Internet", menu=netmenu)
+
         # display the menu
         self.master.config(menu=self.menu)
 
         self.nova_igra()
+
+    def preveri_posodobitve(self):
+        '''Preveri ali obstajajo posodobitve na githubu'''
+        url = 'https://github.com/martincesnovar/Minolovec'
+        vir = urllib2.urlopen(url)
+        for vr in vir:
+            vrstica = vr.decode('utf-8')
+            if 'datetime=' in vrstica:
+                ind = vrstica.index('datetime=')+10
+                if self.datum < vrstica[ind:ind+19]:
+                    update = messagebox.askyesno('Posodobi', 'Na voljo je posodobitev, jo prenesem?')
+                    if update:
+                        webbrowser.open_new(url)
+                else:
+                    messagebox.showinfo(title="Posodobi", message="Trenutno ni posodobitev!")
+                        
+                break
+
+
 
     def file_save(self):
         '''Shrani prazne gumbe'''
@@ -341,6 +368,7 @@ class Nastavitve():
         self.var = IntVar()
         c = Checkbutton(self.top, text="Skrij številke", variable=self.var)
         c.pack()
+
         
         b = Button(self.top, text="OK", command=self.callback)
         self.top.bind("<Return>", self.callback)
