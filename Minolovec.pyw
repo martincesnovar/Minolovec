@@ -4,11 +4,13 @@ if sys.version_info[0] == 2: #Python 2.7.x
     from Tkinter import *
     import tkMessageBox as messagebox
     import tkFileDialog as filedialog
+    from tkColorChooser import askcolor
     import urllib2
 else:
     from tkinter import *
     from tkinter import messagebox
     from tkinter import filedialog
+    from tkinter.colorchooser import *
     import urllib.request as urllib2
 import random
 import time
@@ -21,6 +23,12 @@ MINE = 10
 POKAZI = True #False Ne prikazuje števila min, uro v glavnem oknu, True prikazuje.
 NEPOKAZI_ST = False
 
+#Barve
+C1 = 'green'
+C2='green yellow'
+C3='blue'
+C4='red'
+
 class Gumb:
     def __init__(self, gumb, mina, sosedi):
         self.gumb = gumb
@@ -31,9 +39,12 @@ class Gumb:
         return 'Gumb({0}, {1}, {2})'.format(self.gumb, self.mina, self.sosedi)
 
 class Minesweeper():
-    def __init__(self, master, vrstice,stolpci,mine, nevidne_st, pokazi):
-        self.datum = "2017-06-27T00:00:00" #Time stamp preverjanje posodobitev vedno posodobi.
+    def __init__(self, master, vrstice,stolpci,mine, nevidne_st, pokazi,c1,c2,c3,c4):
         self.pokazi = pokazi
+        self.c1=c1
+        self.c2=c2
+        self.c3=c3
+        self.c4=c4
         self.nevidne_st = nevidne_st
         self.master = master
         self.st_vrstic = vrstice
@@ -73,7 +84,7 @@ class Minesweeper():
         self.menu.add_cascade(label="Težavnost", menu=levelmenu)
 
         netmenu = Menu(self.menu, tearoff=0)
-        netmenu.add_command(label='Preveri posodobitve',command=self.preveri_posodobitve)
+        netmenu.add_command(label='Github',command=self.preveri_posodobitve)
         self.menu.add_cascade(label="Internet", menu=netmenu)
 
         # display the menu
@@ -85,20 +96,7 @@ class Minesweeper():
         '''Preveri ali obstajajo posodobitve na githubu'''
         url = 'https://github.com/martincesnovar/Minolovec'
         vir = urllib2.urlopen(url)
-        for vr in vir:
-            vrstica = vr.decode('utf-8')
-            if 'datetime=' in vrstica:
-                ind = vrstica.index('datetime=')+10
-                if self.datum < vrstica[ind:ind+19]:
-                    update = messagebox.askyesno('Posodobi', 'Na voljo je posodobitev, jo prenesem?')
-                    if update:
-                        webbrowser.open_new(url)
-                else:
-                    messagebox.showinfo(title="Posodobi", message="Trenutno ni posodobitev!")
-                        
-                break
-
-
+        webbrowser.open_new(url)
 
     def file_save(self):
         '''Shrani prazne gumbe'''
@@ -203,7 +201,7 @@ class Minesweeper():
                 if st in self.izbrane_mine:
                     mine = True                   
   
-                gumb = Gumb(Button(frame, bg="green", width=3), mine, num_proximity_mines)  # Objekt
+                gumb = Gumb(Button(frame, bg=self.c1, width=3), mine, num_proximity_mines)  # Objekt
 
                 if mine == False: #Prazne mine doda v seznam - da "premaknem" mino.
                     self.sez_praznih.append(gumb)               
@@ -250,7 +248,7 @@ class Minesweeper():
         if prva: self.t1 = time.time()
 
         sez = self.buttons[vrstica][stolpec]
-        if sez.gumb["bg"] == "green":
+        if sez.gumb["bg"] == self.c1:
             # polje se ni odkrito, ga odkrijemo
             self.st_nepoklikanih -= 1
             sez.sosedi = self.sosednje_mine(vrstica, stolpec)
@@ -273,13 +271,13 @@ class Minesweeper():
                     else:
                         sez.gumb.config(text='')
                         
-                sez.gumb.config(bg="green yellow")
+                sez.gumb.config(bg=self.c2)
             elif sez.mina == 1:
                 # stopili smo na mino
                 for i in range(len(self.buttons)):
                     for x in range(len(self.buttons[i])):
                         if self.buttons[i][x].mina == 1:
-                            self.buttons[i][x].gumb.config(bg="red", text='*')
+                            self.buttons[i][x].gumb.config(bg=self.c4, text='*')
                             preveri_konec = False
                 self.konec_igre(False)
             else:
@@ -293,7 +291,7 @@ class Minesweeper():
                         if m == 0 and sys.platform == "darwin": #Označi odprte
                             sez.gumb.config(text=str(m))
                         
-                sez.gumb.config(bg="green yellow")
+                sez.gumb.config(bg=self.c2)
                 if m == 0:
                     for (v, s) in self.sosedi(vrstica, stolpec):
                         self.lclick(v, s, preveri_konec=False)
@@ -304,17 +302,17 @@ class Minesweeper():
             
     def rclick(self, vrstica, stolpec):
         sez = self.buttons[vrstica][stolpec]
-        if sez.gumb["bg"] == "green":
-            sez.gumb.config(bg="blue", text=chr(9873) if sys.version_info[0] == 3 and TkVersion >= 8.6 else ':)')
+        if sez.gumb["bg"] == self.c1:
+            sez.gumb.config(bg=self.c3, text=chr(9873) if sys.version_info[0] == 3 and TkVersion >= 8.6 else ':)')
             self.st_nepoklikanih -= 1
             if sez.mina == 1:
                 self.mines -= 1
 
-        elif sez.gumb["bg"] == "blue":
+        elif sez.gumb["bg"] == self.c3:
             if sez.gumb == 1:
                 self.mines += 1
             self.st_nepoklikanih += 1
-            sez.gumb.config(bg="green", text="")
+            sez.gumb.config(bg=self.c1, text="")
 
         if self.st_nepoklikanih == 0 and self.mines == 0:
             self.konec_igre(True)
@@ -369,10 +367,31 @@ class Nastavitve():
         c = Checkbutton(self.top, text="Skrij številke", variable=self.var)
         c.pack()
 
+        c1 = Button(self.top, text = 'Neodkriti', command = self.getColor1, bg = self.minesweeper.c1)
+        c1.pack()
+
+        c2 = Button(self.top, text = 'Odkriti', command = self.getColor2, bg = self.minesweeper.c2)
+        c2.pack()
+
+        c3 = Button(self.top, text = 'Zastava', command = self.getColor3, bg = self.minesweeper.c3)
+        c3.pack()
+
+        c4 = Button(self.top, text = 'Mina', command = self.getColor4, bg = self.minesweeper.c4)
+        c4.pack()
         
         b = Button(self.top, text="OK", command=self.callback)
         self.top.bind("<Return>", self.callback)
         b.pack()
+
+
+    def getColor1(self):
+        self.minesweeper.c1 = askcolor()[1]
+    def getColor2(self):
+        self.minesweeper.c2 = askcolor()[1]
+    def getColor3(self):
+        self.minesweeper.c3 = askcolor()[1]
+    def getColor4(self):
+        self.minesweeper.c4 = askcolor()[1]
 
     def callback(self,event=None):
         '''Dobi podatke iz okna če obstajajo, sicer ohrani stare vrednosti'''
@@ -394,5 +413,5 @@ class Nastavitve():
 #Glavni program
 root = Tk()
 root.title('Minolovec')
-minesweeper = Minesweeper(root,VRSTICE,STOLPCI,MINE, NEPOKAZI_ST, POKAZI)
+minesweeper = Minesweeper(root,VRSTICE,STOLPCI,MINE, NEPOKAZI_ST, POKAZI,C1,C2,C3,C4)
 root.mainloop()
