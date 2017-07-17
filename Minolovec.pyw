@@ -2,6 +2,7 @@ import sys
 
 if sys.version_info[0] == 2: #Python 2.7.x
     from Tkinter import *
+    import ttk
     import tkMessageBox as messagebox
     import tkFileDialog as filedialog
     from tkColorChooser import askcolor
@@ -11,6 +12,7 @@ else:
     from tkinter import messagebox
     from tkinter import filedialog
     from tkinter.colorchooser import *
+    from tkinter import ttk
     import urllib.request as urllib2
 import random
 import time
@@ -355,17 +357,18 @@ class Nastavitve():
         Label(frame, text="Število vrstic").grid(row=0, column=0, sticky=W)
         Label(frame, text="Število stolpcev").grid(row=1, column=0, sticky=W)
         Label(frame, text="Število min").grid(row=2, column=0, sticky=W)
-        self.e1 = Entry(frame)
-        self.e2 = Entry(frame)
-        self.e3 = Entry(frame)
+        self.e1 = ttk.Entry(frame)
+        self.e2 = ttk.Entry(frame)
+        self.e3 = ttk.Entry(frame)
 
         self.e1.grid(row=0, column=1)
         self.e2.grid(row=1, column=1)
         self.e3.grid(row=2, column=1)
 
         self.var = IntVar()
-        c = Checkbutton(self.top, text="Skrij številke", variable=self.var)
+        c = ttk.Checkbutton(self.top, text="Skrij številke", variable=self.var)
         c.pack()
+
 
         c1 = Button(self.top, text = 'Neodkriti', command = self.getColor1, bg = self.minesweeper.c1)
         c1.pack()
@@ -379,7 +382,7 @@ class Nastavitve():
         c4 = Button(self.top, text = 'Mina', command = self.getColor4, bg = self.minesweeper.c4)
         c4.pack()
         
-        b = Button(self.top, text="OK", command=self.callback)
+        b = ttk.Button(self.top, text="OK", command=self.callback)
         self.top.bind("<Return>", self.callback)
         b.pack()
 
