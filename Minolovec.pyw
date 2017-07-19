@@ -307,11 +307,11 @@ class Minesweeper():
         if sez.gumb["bg"] == self.c1:
             sez.gumb.config(bg=self.c3, text=chr(9873) if sys.version_info[0] == 3 and TkVersion >= 8.6 else ':)')
             self.st_nepoklikanih -= 1
-            if sez.mina == 1:
+            if sez.mina == True:
                 self.mines -= 1
 
         elif sez.gumb["bg"] == self.c3:
-            if sez.gumb == 1:
+            if sez.mina == True:
                 self.mines += 1
             self.st_nepoklikanih += 1
             sez.gumb.config(bg=self.c1, text="")
