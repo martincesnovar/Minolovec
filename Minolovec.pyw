@@ -32,13 +32,15 @@ C3='blue'
 C4='red'
 
 class Gumb:
-    def __init__(self, gumb, mina, sosedi):
+    def __init__(self, gumb, mina, sosedi, vrstica, stolpec):
         self.gumb = gumb
         self.mina = mina
         self.sosedi = sosedi
+        self.vrstica=vrstica
+        self.stolpec=stolpec
 
     def __repr__(self):
-        return 'Gumb({0}, {1}, {2})'.format(self.gumb, self.mina, self.sosedi)
+        return 'Gumb({0}, {1}, {2}, {3}, {4})'.format(self.gumb, self.mina, self.sosedi, self.vrstica, self.stolpec)
 
 class Minesweeper():
     def __init__(self, master, vrstice,stolpci,mine, nevidne_st, pokazi,c1,c2,c3,c4):
@@ -69,6 +71,7 @@ class Minesweeper():
         # game menu
         filemenu = Menu(self.menu, tearoff=0)
         filemenu.add_command(label="Nova igra", command=self.nova)
+        filemenu.add_command(label="Odpri", command=self.file_open)
         filemenu.add_command(label="Shrani", command=self.file_save)
         filemenu.add_separator()
         filemenu.add_command(label="Izhod", command=self.master.destroy)
@@ -101,12 +104,23 @@ class Minesweeper():
         webbrowser.open_new(url)
 
     def file_save(self):
-        '''Shrani prazne gumbe'''
-        name=filedialog.asksaveasfile(mode='w',defaultextension=".txt")
-        for el in self.sez_praznih:
-            text2save=str(el)+'\n'
+        '''Shrani gumbe'''
+        name=filedialog.asksaveasfile(mode='w',defaultextension=".txt", filetypes=[('Text Files', '*.txt')])
+        #self.sez_praznih
+        name.write('{0} {1}\n'.format(self.st_vrstic1234, self.st_stolpcev1234))
+        for el in self.izbrane_mine:
+            text2save=str(el)+ ' '
             name.write(text2save)
         name.close
+
+    def file_open(self):
+        '''Naloži igro iz datoteke'''
+        file_path = filedialog.askopenfilename(filetypes=[('All', '*.*'),('Text Files', '*.txt')])
+        self.nova_igra()
+        with open(file_path) as f:
+            self.st_vrstic1234, self.st_stolpcev1234 = map(int, f.readline().split())
+            self.izbrane_mine = map(int,f.readline().split())
+            
 
     def skrij_uro(self):
         self.pokazi = not self.pokazi
@@ -203,7 +217,7 @@ class Minesweeper():
                 if st in self.izbrane_mine:
                     mine = True                   
   
-                gumb = Gumb(Button(frame, bg=self.c1, width=3), mine, num_proximity_mines)  # Objekt
+                gumb = Gumb(Button(frame, bg=self.c1, width=3), mine, num_proximity_mines, vrstica, stolpec)  # Objekt
 
                 if mine == False: #Prazne mine doda v seznam - da "premaknem" mino.
                     self.sez_praznih.append(gumb)               
