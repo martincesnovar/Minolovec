@@ -104,31 +104,7 @@ class Minesweeper():
         vir = urllib2.urlopen(url)
         webbrowser.open_new(url)
 
-    def file_save(self):
-        '''Shrani gumbe'''
-        name=filedialog.asksaveasfile(mode='w',defaultextension=".txt", filetypes=[('Text Files', '*.txt')])
-        #self.sez_praznih
-        name.write('{0} {1} {2}\n'.format(self.st_vrstic1234, self.st_stolpcev1234, self.mines1234))
-        for el in self.izbrane_mine:
-            text2save=str(el)+ ' '
-            name.write(text2save)
-        name.write('\n\n#Nikoli ne preseži {0}\n#1 vrstice stolpci mine\n#2 položaj min'.format(self.st_vrstic1234*self.st_stolpcev1234-1))
-        name.close
 
-    def file_open(self):
-        '''Naloži igro iz datoteke'''
-        self.odkje=False
-        self.nova_igra()
-        self.odkje=True
-
-    def odpri1(self,odkje):
-        if odkje:
-            self.izbrane_mine = random.sample([i for i in range(self.st_vrstic * self.st_stolpcev)], self.mines1234)
-        else:
-            file_path = filedialog.askopenfilename(filetypes=[('Text Files', '*.txt'),('All', '*.*')])
-            with open(file_path) as f:
-                self.st_vrstic1234, self.st_stolpcev1234, self.mines1234 = list(map(int, f.readline().split()))
-                self.izbrane_mine = list(map(int,f.readline().split()))
             
 
     def skrij_uro(self):
@@ -186,20 +162,47 @@ class Minesweeper():
             for stolpec in range(self.st_stolpcev):
                 self.buttons[vrstica][stolpec].gumb.destroy()
         self.buttons=None
+
+    def file_save(self):
+        '''Shrani gumbe'''
+        name=filedialog.asksaveasfile(mode='w',defaultextension=".txt", filetypes=[('Text Files', '*.txt')])
+        #self.sez_praznih
+        name.write('{0} {1} {2}\n'.format(self.st_vrstic1234, self.st_stolpcev1234, self.mines1234))
+        for el in self.izbrane_mine:
+            text2save=str(el)+ ' '
+            name.write(text2save)
+        name.write('\n\n#Nikoli ne preseži {0}\n#1 vrstice stolpci mine\n#2 položaj min'.format(self.st_vrstic1234*self.st_stolpcev1234-1))
+        name.close
+
+    def file_open(self):
+        '''Naloži igro iz datoteke'''
+        self.odkje=False
+        self.nova_igra()
+        self.odkje=True
+
+    def odpri1(self,odkje):
+        if odkje:
+            #Dobi podatke iz nastavitev
+            self.mines=self.mines1234
+            self.st_vrstic = self.st_vrstic1234
+            self.st_stolpcev = self.st_stolpcev1234
+            self.izbrane_mine = random.sample([i for i in range(self.st_vrstic * self.st_stolpcev)], self.mines1234)
+        else:
+            file_path = filedialog.askopenfilename(filetypes=[('Text Files', '*.txt'),('All', '*.*')])
+            with open(file_path) as f:
+                self.st_vrstic1234, self.st_stolpcev1234, self.mines1234 = list(map(int, f.readline().split()))
+                self.izbrane_mine = list(map(int,f.readline().split()))
+            self.mines=self.mines1234
+            self.st_vrstic = self.st_vrstic1234
+            self.st_stolpcev = self.st_stolpcev1234
+        self.buttons = [[None for i in range(self.st_stolpcev)] for j in range(self.st_vrstic)]
+        self.st_nepoklikanih = self.st_vrstic * self.st_stolpcev
     
 
     def nova_igra(self):
         self.sez_praznih = []
         self.prvic = True
-
-        self.odpri1(self.odkje)
-        
-        #Uporabi podatke iz okna nastavitve
-        self.mines=self.mines1234
-        self.st_vrstic = self.st_vrstic1234
-        self.st_stolpcev = self.st_stolpcev1234
-        self.buttons = [[None for i in range(self.st_stolpcev)] for j in range(self.st_vrstic)]
-        self.st_nepoklikanih = self.st_vrstic * self.st_stolpcev
+        self.odpri1(self.odkje) #Naloži novo igro iz datoteke (False) ali iz igre (True)
         num_proximity_mines = 0
         frame = Frame(self.master)
         Grid.rowconfigure(self.master, 0, weight=1)
