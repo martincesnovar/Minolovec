@@ -108,10 +108,11 @@ class Minesweeper():
         '''Shrani gumbe'''
         name=filedialog.asksaveasfile(mode='w',defaultextension=".txt", filetypes=[('Text Files', '*.txt')])
         #self.sez_praznih
-        name.write('{0} {1}\n'.format(self.st_vrstic1234, self.st_stolpcev1234))
+        name.write('{0} {1} {2}\n'.format(self.st_vrstic1234, self.st_stolpcev1234, self.mines1234))
         for el in self.izbrane_mine:
             text2save=str(el)+ ' '
             name.write(text2save)
+        name.write('\n\n#Nikoli ne preseži {0}\n#1 vrstice stolpci mine\n#2 položaj min'.format(self.st_vrstic1234*self.st_stolpcev1234-1))
         name.close
 
     def file_open(self):
@@ -124,9 +125,9 @@ class Minesweeper():
         if odkje:
             self.izbrane_mine = random.sample([i for i in range(self.st_vrstic * self.st_stolpcev)], self.mines1234)
         else:
-            file_path = filedialog.askopenfilename(filetypes=[('All', '*.*'),('Text Files', '*.txt')])
+            file_path = filedialog.askopenfilename(filetypes=[('Text Files', '*.txt'),('All', '*.*')])
             with open(file_path) as f:
-                self.st_vrstic1234, self.st_stolpcev1234 = list(map(int, f.readline().split()))
+                self.st_vrstic1234, self.st_stolpcev1234, self.mines1234 = list(map(int, f.readline().split()))
                 self.izbrane_mine = list(map(int,f.readline().split()))
             
 
