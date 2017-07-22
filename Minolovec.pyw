@@ -44,6 +44,7 @@ class Gumb:
 
 class Minesweeper():
     def __init__(self, master, vrstice,stolpci,mine, nevidne_st, pokazi,c1,c2,c3,c4):
+        self.odkje = True
         self.pokazi = pokazi
         self.c1=c1
         self.c2=c2
@@ -115,11 +116,18 @@ class Minesweeper():
 
     def file_open(self):
         '''Naloži igro iz datoteke'''
-        file_path = filedialog.askopenfilename(filetypes=[('All', '*.*'),('Text Files', '*.txt')])
+        self.odkje=False
         self.nova_igra()
-        with open(file_path) as f:
-            self.st_vrstic1234, self.st_stolpcev1234 = map(int, f.readline().split())
-            self.izbrane_mine = map(int,f.readline().split())
+        self.odkje=True
+
+    def odpri1(self,odkje):
+        if odkje:
+            self.izbrane_mine = random.sample([i for i in range(self.st_vrstic * self.st_stolpcev)], self.mines1234)
+        else:
+            file_path = filedialog.askopenfilename(filetypes=[('All', '*.*'),('Text Files', '*.txt')])
+            with open(file_path) as f:
+                self.st_vrstic1234, self.st_stolpcev1234 = list(map(int, f.readline().split()))
+                self.izbrane_mine = list(map(int,f.readline().split()))
             
 
     def skrij_uro(self):
@@ -177,16 +185,19 @@ class Minesweeper():
             for stolpec in range(self.st_stolpcev):
                 self.buttons[vrstica][stolpec].gumb.destroy()
         self.buttons=None
+    
 
     def nova_igra(self):
         self.sez_praznih = []
         self.prvic = True
+
+        self.odpri1(self.odkje)
+        
         #Uporabi podatke iz okna nastavitve
         self.mines=self.mines1234
         self.st_vrstic = self.st_vrstic1234
         self.st_stolpcev = self.st_stolpcev1234
         self.buttons = [[None for i in range(self.st_stolpcev)] for j in range(self.st_vrstic)]
-        self.izbrane_mine = random.sample([i for i in range(self.st_vrstic * self.st_stolpcev)], self.mines1234)
         self.st_nepoklikanih = self.st_vrstic * self.st_stolpcev
         num_proximity_mines = 0
         frame = Frame(self.master)
