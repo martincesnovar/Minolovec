@@ -166,7 +166,7 @@ class Minesweeper():
             name=filedialog.asksaveasfile(mode='w',defaultextension=".txt", filetypes=[('Text Files', '*.txt')])
             #self.sez_praznih
             name.write('{0} {1} {2}\n'.format(self.st_vrstic1234, self.st_stolpcev1234, self.mines1234))
-            for el in self.izbrane_mine:
+            for el in sorted(self.izbrane_mine):
                 text2save=str(el)+ ' '
                 name.write(text2save)
             name.write('\n\n#Nikoli ne preseži {0}\n#1 vrstice stolpci mine\n#2 položaj min'.format(self.st_vrstic1234*self.st_stolpcev1234-1))
